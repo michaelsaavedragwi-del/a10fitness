@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  name               String
+  passwordHash       String
+  role               String   @default("coach") // "owner" (full edit) or "coach" (view only)
+  mustChangePassword Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Athlete {
+  id    String @id @default(cuid())
+  name  String @unique // full name — the match key on import
+  level String // e.g. Pro, D1, D2, D3, JUCO, High School
+
+  // Current-best (PR) force-plate metrics
+  pp    Float // CMJ peak power (W)
+  ppbm  Float // peak power / body mass (W/kg)
+  ci    Float // concentric impulse 0-100ms (N*s)
+  brfd  Float // braking RFD (N/s)
+  mrsi  Float // modified reactive strength index
+
+  mph          Float  @default(0) // actual max performance metric (0 = none measured)
+  predOverride Float? // manual predicted value; when set, beats the model
+
+  archived     Boolean   @default(false)
+  lastTestedAt DateTime? // most recent force-plate test; drives the re-test clock
+
+  lastReportReviewedAt DateTime? // when an owner last marked this athlete's progress report reviewed
+
+  isa String @default("None") // movement profile: "Narrow" | "Wide" | "None"
+  rom Json? // range-of-motion assessment (see spec §7)
+
+  tests TestEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TestEntry {
+  id           String   @id @default(cuid())
+  athlete      Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  athleteId    String
+  date         DateTime
+  isForcePlate Boolean  @default(true) // false = a performance-only entry (zeros for plate metrics)
+
+  mph  Float @default(0)
+  pp   Float @default(0)
+  ppbm Float @default(0)
+  ci   Float @default(0)
+  brfd Float @default(0)
+  mrsi Float @default(0)
+
+  // Extended movement-mechanics metrics (display-only — not PR-tracked on Athlete,
+  // not fed into the prediction model). 0 = not captured on this test.
+  peakLandingForce        Float @default(0) // N, lower is generally better
+  timeToStabilization     Float @default(0) // ms, lower is generally better
+  landingPerformanceIndex Float @default(0) // unitless composite, higher is better
+  lrBrakingImpulseIndex   Float @default(0) // % asymmetry, closer to 0 is better
+  lrPropulsiveImpulseIndex Float @default(0) // % asymmetry, closer to 0 is better
+  lrLandingImpulseIndex   Float @default(0) // % asymmetry, closer to 0 is better
+  propulsivePhase         Float @default(0) // s, lower is generally better (more explosive)
+  takeoffVelocity         Float @default(0) // m/s, higher is better
+  peakVelocity            Float @default(0) // m/s, higher is better
+
+  externalTestId String? @unique // external (force-plate provider) test id, so a synced test is never imported twice
+
+  @@index([athleteId])
+}
+
+// Bookkeeping for the nightly auto-sync (single row)
+model SyncState {
+  id           String    @id @default("main")
+  lastRunAt    DateTime?
+  imported     Int       @default(0)
+  unmatched    Json? // names with no roster match on the last run
+  lastError    String? // set when the most recent run failed, cleared on the next success
+  lastErrorAt  DateTime?
+}
+
+// Tests the coach chose NOT to add, keyed by external test id (so a *new* test resurfaces)
+model DismissedTest {
+  externalTestId String   @id
+  profileName    String
+  dismissedAt    DateTime @default(now())
+}
