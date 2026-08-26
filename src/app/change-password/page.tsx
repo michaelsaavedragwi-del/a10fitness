@@ -50,7 +50,7 @@ export default async function ChangePasswordPage({
           Confirm new password
           <input type="password" name="confirmPassword" required minLength={8} autoComplete="new-password" />
         </label>
-        <button type="submit">Set password</button>
+        <button type="submit" className="btn btn-primary">Set password</button>
       </form>
     </div>
   );
