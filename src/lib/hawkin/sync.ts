@@ -16,7 +16,13 @@ export interface PreviewUnmatchedTest {
   testId: string;
   profileName: string;
   recordedDate: string; // ISO
+  /** Null if this test's metrics aren't calculable yet — can still be dismissed, not created. */
+  metrics: CmjMetrics | null;
+  extended: ExtendedMetrics | null;
 }
+
+/** Level assigned to an athlete auto-created from an unmatched Hawkin profile — Hawkin has no concept of level. */
+export const AUTO_CREATED_LEVEL = "Unassigned";
 
 export interface SyncPreview {
   matched: PreviewMatchedTest[];
@@ -53,12 +59,19 @@ export async function buildPreview(sinceDays = 30): Promise<SyncPreview> {
     const recordedDate = new Date(test.timestamp * 1000).toISOString();
     const athlete = athleteByNormalizedName.get(normalizeName(profileName));
 
+    const metrics = extractCmjMetrics(test);
+
     if (!athlete) {
-      unmatched.push({ testId: test.id, profileName, recordedDate });
+      unmatched.push({
+        testId: test.id,
+        profileName,
+        recordedDate,
+        metrics,
+        extended: metrics ? extractExtendedMetrics(test) : null,
+      });
       continue;
     }
 
-    const metrics = extractCmjMetrics(test);
     if (!metrics) continue; // metrics not yet calculable for this test
 
     matched.push({
@@ -117,6 +130,41 @@ export async function importMatchedTest(test: PreviewMatchedTest): Promise<"impo
   }
 
   return "imported";
+}
+
+/**
+ * Creates a new athlete from an unmatched Hawkin profile, then imports the
+ * test that surfaced them — this is the explicit, one-click "Create & Import"
+ * action, never automatic. Level defaults to AUTO_CREATED_LEVEL since Hawkin
+ * doesn't send one; a coach corrects it later on the Roster page. If an
+ * athlete with this exact name already exists (e.g. a duplicate profile
+ * click, or someone else just created it), reuses that athlete instead of
+ * erroring — the unique constraint on Athlete.name is the source of truth.
+ */
+export async function createAthleteAndImport(
+  test: PreviewUnmatchedTest,
+): Promise<{ athleteId: string; result: "imported" | "duplicate" }> {
+  if (!test.metrics) {
+    throw new Error(`No calculable metrics yet for ${test.profileName}'s test — nothing to import.`);
+  }
+
+  const athlete = await prisma.athlete.upsert({
+    where: { name: test.profileName },
+    create: { name: test.profileName, level: AUTO_CREATED_LEVEL, pp: 0, ppbm: 0, ci: 0, brfd: 0, mrsi: 0 },
+    update: {},
+  });
+
+  const result = await importMatchedTest({
+    testId: test.testId,
+    profileName: test.profileName,
+    athleteId: athlete.id,
+    athleteName: athlete.name,
+    recordedDate: test.recordedDate,
+    metrics: test.metrics,
+    extended: test.extended ?? { peakLandingForce: 0, timeToStabilization: 0, landingPerformanceIndex: 0, lrBrakingImpulseIndex: 0, lrPropulsiveImpulseIndex: 0, lrLandingImpulseIndex: 0, propulsivePhase: 0, takeoffVelocity: 0, peakVelocity: 0 },
+  });
+
+  return { athleteId: athlete.id, result };
 }
 
 /** The nightly job: auto-import every matched test, record unmatched names for the coach to review. */

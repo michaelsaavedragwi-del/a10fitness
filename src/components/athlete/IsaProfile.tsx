@@ -28,7 +28,7 @@ export function IsaProfile({ isa }: { isa: string }) {
     <div className="card">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
         <h3>Movement Profile</h3>
-        <span className={`tag ${isa === "None" ? "" : "blue"}`}>{isa}</span>
+        <span className={`tag ${isa === "None" ? "" : "lime"}`}>{isa}</span>
       </div>
 
       <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
@@ -43,7 +43,7 @@ export function IsaProfile({ isa }: { isa: string }) {
                   : "M40,140 C41,100 36,68 47,38 C56,19 90,15 100,19"
             }
             fill="none"
-            stroke="var(--blue)"
+            stroke="var(--lime)"
             strokeWidth={2}
           />
           <ellipse

@@ -48,7 +48,7 @@ export function TestHistory({
         <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span className="hint">Peak Power</span>
-            <Sparkline values={ppSeries} color="var(--blue)" />
+            <Sparkline values={ppSeries} color="var(--lime)" />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span className="hint">Performance</span>
@@ -102,7 +102,7 @@ export function TestHistory({
                   <tr key={g.dayKey}>
                     <td>{formatDate(g.date)}</td>
                     <td>
-                      <span className={`tag ${fp ? "blue" : "green"}`}>{typeLabel}</span>
+                      <span className={`tag ${fp ? "lime" : "green"}`}>{typeLabel}</span>
                     </td>
                     <td className="num">{fp && fp.pp > 0 ? fmt1(fp.pp) : "—"}</td>
                     <td className="num">{fp && fp.ppbm > 0 ? fmt1(fp.ppbm) : "—"}</td>

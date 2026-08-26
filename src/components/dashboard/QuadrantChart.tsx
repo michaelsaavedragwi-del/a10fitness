@@ -5,7 +5,7 @@ const COLOR_HEX: Record<string, string> = {
   red: "var(--red)",
   orange: "var(--orange)",
   green: "var(--green)",
-  neutral: "var(--blue)",
+  neutral: "var(--lime)",
 };
 
 function median(values: number[]): number {
@@ -81,7 +81,7 @@ export function QuadrantChart({ roster }: { roster: RosterAthlete[] }) {
           Moderate
         </div>
         <div>
-          <span className="dot" style={{ background: "var(--blue)" }} />
+          <span className="dot" style={{ background: "var(--lime)" }} />
           On track / other
         </div>
         <div>

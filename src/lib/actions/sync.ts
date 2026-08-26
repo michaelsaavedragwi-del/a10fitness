@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireOwner } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/db";
-import { importMatchedTest, type PreviewMatchedTest } from "@/lib/hawkin/sync";
+import { createAthleteAndImport, importMatchedTest, type PreviewMatchedTest, type PreviewUnmatchedTest } from "@/lib/hawkin/sync";
 
 export async function importSelectedTests(tests: PreviewMatchedTest[]) {
   await requireOwner();
@@ -29,4 +29,27 @@ export async function dismissUnmatchedTest(testId: string, profileName: string) 
     update: {},
   });
   revalidatePath("/sync");
+}
+
+export async function createAndImportUnmatched(tests: PreviewUnmatchedTest[]) {
+  await requireOwner();
+
+  let created = 0;
+  let duplicates = 0;
+  const failures: string[] = [];
+
+  for (const test of tests) {
+    try {
+      const { result } = await createAthleteAndImport(test);
+      if (result === "imported") created++;
+      else duplicates++;
+    } catch (err) {
+      failures.push(`${test.profileName}: ${err instanceof Error ? err.message : "failed"}`);
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/sync");
+  revalidatePath("/roster");
+  return { created, duplicates, failures };
 }

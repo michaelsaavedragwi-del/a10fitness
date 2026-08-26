@@ -41,13 +41,13 @@ export function ProgressChart({ tests }: { tests: TestEntry[] }) {
         <line x1={pad} y1={height - pad} x2={width - pad} y2={height - pad} stroke="var(--text-mute)" />
 
         {ppPoints.length >= 2 && (
-          <polyline points={line(ppPoints, "pp", syPp)} fill="none" stroke="var(--blue)" strokeWidth={2} />
+          <polyline points={line(ppPoints, "pp", syPp)} fill="none" stroke="var(--lime)" strokeWidth={2} />
         )}
         {ppPoints.map((p, i) => (
           <g key={`pp-${p.id}`}>
-            <circle cx={sx(p.date.getTime())} cy={syPp(p.pp)} r={3} fill="var(--blue)" />
+            <circle cx={sx(p.date.getTime())} cy={syPp(p.pp)} r={3} fill="var(--lime)" />
             {(i === 0 || i === ppPoints.length - 1) && (
-              <text x={sx(p.date.getTime())} y={syPp(p.pp) - 8} fontSize="10" fill="var(--blue)" textAnchor="middle">
+              <text x={sx(p.date.getTime())} y={syPp(p.pp) - 8} fontSize="10" fill="var(--lime)" textAnchor="middle">
                 {p.pp.toFixed(0)}W
               </text>
             )}
@@ -77,7 +77,7 @@ export function ProgressChart({ tests }: { tests: TestEntry[] }) {
       </svg>
       <div style={{ display: "flex", gap: 16, marginTop: 6 }}>
         <span className="hint">
-          <span style={{ color: "var(--blue)" }}>●</span> Peak Power
+          <span style={{ color: "var(--lime)" }}>●</span> Peak Power
         </span>
         <span className="hint">
           <span style={{ color: "var(--green)" }}>●</span> Performance

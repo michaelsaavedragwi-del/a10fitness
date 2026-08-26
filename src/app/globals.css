@@ -1,20 +1,28 @@
 :root {
-  --bg: #0f1624;
-  --card: #1a2133;
-  --card2: #1a2744;
-  --accent: #243059;
+  /* Black / gray / lime — matches the training center's branding. Red and
+     orange stay put: they're severity signals staff scan for, not brand. */
+  --bg: #0a0a0a;
+  --card: #17181a;
+  --card2: #1f2022;
+  --accent: #2a2c2a;
   /* Contrast on a dark UI comes from going lighter, not darker — a header
      band the same value as the card it sits on disappears. */
-  --header-band: #2f3f66;
-  --border: rgba(255, 255, 255, 0.08);
+  --header-band: #35373a;
+  --border: rgba(255, 255, 255, 0.10);
 
-  --text-pri: #e2e8f0;
-  --text-sec: #c8d4e8;
-  --text-mute: #8fa3cc;
+  --text-pri: #f5f5f5;
+  --text-sec: #d1d1d1;
+  --text-mute: #949494;
 
-  --blue: #a0c4ff;
-  --blue-mute: #8fa3cc;
-  --blue-dim: #6b7a99;
+  /* Lime — validated against red/orange for CVD safety via the dataviz
+     skill's validator (clean pass: CVD ΔE 13.5, normal-vision ΔE 21.2,
+     both well clear of the 8.0/15 floors). A brighter lime (#84cc16 and
+     up) reads as visually indistinguishable from the orange for
+     deuteranopia/protanopia viewers — don't lighten this without
+     re-validating. Contrast vs --bg: 6.41:1. */
+  --lime: #65a30d;
+  --lime-mute: #7a9c3f;
+  --lime-dim: #4d6b1f;
 
   --red: #f87171;
   --red-bg: rgba(248, 113, 113, 0.12);
@@ -24,9 +32,9 @@
   --orange-bg: rgba(251, 191, 36, 0.12);
   --orange-border: rgba(251, 191, 36, 0.35);
 
-  --green: #4ade80;
-  --green-bg: rgba(74, 222, 128, 0.12);
-  --green-border: rgba(74, 222, 128, 0.35);
+  --green: #65a30d;
+  --green-bg: rgba(101, 163, 13, 0.14);
+  --green-border: rgba(101, 163, 13, 0.4);
 
   color-scheme: dark;
 }
@@ -50,7 +58,7 @@ body {
 }
 
 a {
-  color: var(--blue);
+  color: var(--lime);
   text-decoration: none;
 }
 a:hover {
@@ -274,7 +282,7 @@ section.block {
   display: block;
   background: var(--card);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--blue-dim);
+  border-left: 3px solid var(--lime-dim);
   border-radius: 8px;
   padding: 12px 14px;
   margin-bottom: 8px;
@@ -331,7 +339,7 @@ section.block {
 .tag.red { color: var(--red); background: var(--red-bg); border-color: var(--red-border); }
 .tag.orange { color: var(--orange); background: var(--orange-bg); border-color: var(--orange-border); }
 .tag.green { color: var(--green); background: var(--green-bg); border-color: var(--green-border); }
-.tag.blue { color: var(--blue); background: rgba(160, 196, 255, 0.12); border-color: rgba(160, 196, 255, 0.35); }
+.tag.lime { color: var(--lime); background: rgba(101, 163, 13, 0.14); border-color: rgba(101, 163, 13, 0.4); }
 
 .badge {
   display: inline-flex;
@@ -425,7 +433,7 @@ input, select, textarea {
 }
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: var(--blue-dim);
+  border-color: var(--lime-dim);
 }
 
 .form-grid {
@@ -448,8 +456,8 @@ input:focus, select:focus, textarea:focus {
   cursor: pointer;
 }
 .btn:hover { background: var(--accent); }
-.btn-primary { background: var(--blue); color: #0f1624; border-color: var(--blue); font-weight: 600; }
-.btn-primary:hover { background: #b7d4ff; }
+.btn-primary { background: var(--lime); color: #0a0a0a; border-color: var(--lime); font-weight: 600; }
+.btn-primary:hover { background: #84cc16; }
 .btn-danger { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
 .btn-danger:hover { background: rgba(248, 113, 113, 0.22); }
 .btn-ghost { background: transparent; border-color: transparent; color: var(--text-mute); }
@@ -549,7 +557,7 @@ input:focus, select:focus, textarea:focus {
 }
 .pct-bar > div {
   height: 100%;
-  background: var(--blue);
+  background: var(--lime);
   border-radius: 999px;
 }
 .pct-bar.flagged > div { background: var(--red); }

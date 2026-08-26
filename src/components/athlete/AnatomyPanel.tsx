@@ -39,15 +39,15 @@ export function AnatomyPanel({ rom }: { rom: unknown }) {
             const side = assessment.tests[j.key];
             if (!side) return null;
             const flags = sideFlags(side);
-            const color = side.flag ? FLAG_COLOR[side.flag] : "var(--blue-dim)";
+            const color = side.flag ? FLAG_COLOR[side.flag] : "var(--lime-dim)";
             const lx = j.key === "wrist" ? 20 : j.key === "ankle" ? 30 : 20;
             const rx = j.key === "wrist" ? 80 : j.key === "ankle" ? 70 : 80;
             return (
               <g key={j.key}>
-                <circle cx={lx} cy={j.y} r={flags.l ? 6 : 4.5} fill={flags.l ? color : "var(--blue-dim)"}>
+                <circle cx={lx} cy={j.y} r={flags.l ? 6 : 4.5} fill={flags.l ? color : "var(--lime-dim)"}>
                   <title>{`${j.label} (L): ${side.l}°${side.flag ? ` — ${side.flag}` : ""}${side.note ? ` ${side.note}` : ""}`}</title>
                 </circle>
-                <circle cx={rx} cy={j.y} r={flags.r ? 6 : 4.5} fill={flags.r ? color : "var(--blue-dim)"}>
+                <circle cx={rx} cy={j.y} r={flags.r ? 6 : 4.5} fill={flags.r ? color : "var(--lime-dim)"}>
                   <title>{`${j.label} (R): ${side.r}°${side.flag ? ` — ${side.flag}` : ""}${side.note ? ` ${side.note}` : ""}`}</title>
                 </circle>
               </g>

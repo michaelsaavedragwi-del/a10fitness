@@ -2,7 +2,7 @@ export function Sparkline({
   values,
   width = 100,
   height = 28,
-  color = "var(--blue)",
+  color = "var(--lime)",
 }: {
   values: number[];
   width?: number;
