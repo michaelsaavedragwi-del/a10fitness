@@ -2,10 +2,10 @@ import { notFound } from "next/navigation";
 import { requireOwner } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/db";
 import { updateAthlete } from "@/lib/actions/athletes";
+import { SPORTS } from "@/lib/sports";
 import { JOINTS } from "@/lib/rom";
 import { clubLocalDayKey } from "@/lib/timezone";
 
-const LEVELS = ["Pro", "D1", "D2", "D3", "JUCO", "High School"];
 const ISA_OPTIONS = ["None", "Narrow", "Wide"];
 
 function romTemplate(): string {
@@ -38,7 +38,7 @@ export default async function EditAthletePage({
       </div>
 
       <form className="card" action={boundUpdate}>
-        {error === "required" && <div className="auth-error">Name and level are required.</div>}
+        {error === "required" && <div className="auth-error">Name and sport are required.</div>}
         {error === "duplicate" && <div className="auth-error">An athlete with that name already exists.</div>}
         {error === "rom-json" && <div className="auth-error">Range-of-motion data isn&apos;t valid JSON.</div>}
 
@@ -48,13 +48,19 @@ export default async function EditAthletePage({
             <input type="text" name="name" defaultValue={athlete.name} required />
           </label>
           <label>
-            Level
-            <input type="text" name="level" list="levels" defaultValue={athlete.level} required />
-            <datalist id="levels">
-              {LEVELS.map((l) => (
-                <option key={l} value={l} />
+            Sport
+            <select name="sport" defaultValue={athlete.sport} required>
+              {!athlete.sport && (
+                <option value="" disabled>
+                  Select a sport
+                </option>
+              )}
+              {SPORTS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
-            </datalist>
+            </select>
           </label>
           <label>
             Sex

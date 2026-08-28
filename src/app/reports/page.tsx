@@ -42,7 +42,7 @@ export default async function ReportsPage({
           <thead>
             <tr>
               <th>Athlete</th>
-              <th>Level</th>
+              <th>Sport</th>
               <th>Status</th>
               <th>Gap</th>
               <th>Last Reviewed</th>
@@ -56,7 +56,7 @@ export default async function ReportsPage({
                 <td className="name-cell">
                   <Link href={`/athletes/${a.id}`}>{a.name}</Link>
                 </td>
-                <td>{a.level}</td>
+                <td>{a.sport || "—"}</td>
                 <td>
                   <span className={`badge ${a.category.replace(" ", "-")}`}>{categoryLabel(a.category)}</span>
                 </td>

@@ -12,7 +12,7 @@ function Board({ title, unit, entries }: { title: string; unit: string; entries:
           {entries.slice(0, 10).map((e, i) => (
             <li key={e.athleteId} style={{ padding: "4px 0" }}>
               <Link href={`/athletes/${e.athleteId}`}>{e.athleteName}</Link>{" "}
-              <span className="hint">({e.level})</span> —{" "}
+              <span className="hint">({e.sport || "—"})</span> —{" "}
               <span className="tabular" style={{ fontWeight: 600, color: "var(--text-pri)" }}>
                 {e.value.toFixed(1)} {unit}
               </span>

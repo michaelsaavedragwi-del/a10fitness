@@ -13,7 +13,7 @@ export function AwaitingData({ roster }: { roster: RosterAthlete[] }) {
           <div className="row1">
             <span className="name">{a.name}</span>
           </div>
-          <div className="level">{a.level}</div>
+          <div className="level">{a.sport || "—"}</div>
           <div className="hint">
             {a.mph > 0 ? `Performance: ${a.mph.toFixed(1)}` : "No performance measured yet"}
           </div>

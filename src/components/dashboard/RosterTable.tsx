@@ -1,11 +1,13 @@
 import Link from "next/link";
 import type { RosterAthlete } from "@/lib/roster";
+import { AGE_GROUPS, ageGroupFromBirthYear } from "@/lib/ageGroup";
 import { ageFromBirthYear, categoryLabel, fmt1, fmtSigned1 } from "@/lib/format";
 
 export interface RosterFilters {
   status: "active" | "archived";
-  level: string;
+  sport: string;
   sex: string;
+  ageGroup: string;
   q: string;
   sort: string;
   dir: "asc" | "desc";
@@ -14,7 +16,7 @@ export interface RosterFilters {
 export interface ArchivedRow {
   id: string;
   name: string;
-  level: string;
+  sport: string;
   sex: string | null;
   birthYear: number | null;
   pp: number;
@@ -37,8 +39,9 @@ function sortLink(filters: RosterFilters, key: string): string {
   const nextDir = filters.sort === key && filters.dir === "desc" ? "asc" : "desc";
   const params = new URLSearchParams({
     status: filters.status,
-    level: filters.level,
+    sport: filters.sport,
     sex: filters.sex,
+    ageGroup: filters.ageGroup,
     q: filters.q,
     sort: key,
     dir: nextDir,
@@ -50,12 +53,12 @@ export function RosterTable({
   rows,
   archivedRows,
   filters,
-  levels,
+  sports,
 }: {
   rows: RosterAthlete[];
   archivedRows: ArchivedRow[];
   filters: RosterFilters;
-  levels: string[];
+  sports: string[];
 }) {
   const showingArchived = filters.status === "archived";
 
@@ -72,12 +75,12 @@ export function RosterTable({
           </select>
         </label>
         <label>
-          Level
-          <select name="level" defaultValue={filters.level}>
-            <option value="">All levels</option>
-            {levels.map((l) => (
-              <option key={l} value={l}>
-                {l}
+          Sport
+          <select name="sport" defaultValue={filters.sport}>
+            <option value="">All sports</option>
+            {sports.map((s) => (
+              <option key={s} value={s}>
+                {s}
               </option>
             ))}
           </select>
@@ -88,6 +91,17 @@ export function RosterTable({
             <option value="">All</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
+          </select>
+        </label>
+        <label>
+          Age Group
+          <select name="ageGroup" defaultValue={filters.ageGroup}>
+            <option value="">All</option>
+            {AGE_GROUPS.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
           </select>
         </label>
         <label>
@@ -106,9 +120,10 @@ export function RosterTable({
               <th>
                 <Link href={sortLink(filters, "name")}>Name</Link>
               </th>
-              <th>Level</th>
+              <th>Sport</th>
               <th>Sex</th>
               <th>Age</th>
+              <th>Age Group</th>
               <th>
                 <Link href={sortLink(filters, "pp")}>Peak Power</Link>
               </th>
@@ -135,9 +150,10 @@ export function RosterTable({
                     <td className="name-cell">
                       <Link href={`/athletes/${a.id}`}>{a.name}</Link>
                     </td>
-                    <td>{a.level}</td>
+                    <td>{a.sport || "—"}</td>
                     <td>{a.sex ?? "—"}</td>
                     <td className="num">{ageFromBirthYear(a.birthYear) ?? "—"}</td>
+                    <td>{ageGroupFromBirthYear(a.birthYear) ?? "—"}</td>
                     <td className="num">{a.pp > 0 ? fmt1(a.pp) : "—"}</td>
                     <td className="num">{a.ppbm > 0 ? fmt1(a.ppbm) : "—"}</td>
                     <td className="num">{a.ci > 0 ? fmt1(a.ci) : "—"}</td>
@@ -154,9 +170,10 @@ export function RosterTable({
                     <td className="name-cell">
                       <Link href={`/athletes/${a.id}`}>{a.name}</Link>
                     </td>
-                    <td>{a.level}</td>
+                    <td>{a.sport || "—"}</td>
                     <td>{a.sex ?? "—"}</td>
                     <td className="num">{ageFromBirthYear(a.birthYear) ?? "—"}</td>
+                    <td>{a.ageGroup ?? "—"}</td>
                     <td className="num">{a.pp > 0 ? fmt1(a.pp) : "—"}</td>
                     <td className="num">{a.ppbm > 0 ? fmt1(a.ppbm) : "—"}</td>
                     <td className="num">{a.ci > 0 ? fmt1(a.ci) : "—"}</td>
@@ -172,7 +189,7 @@ export function RosterTable({
                 ))}
             {(showingArchived ? archivedRows : rows).length === 0 && (
               <tr>
-                <td colSpan={12} className="empty-state">
+                <td colSpan={13} className="empty-state">
                   No athletes match these filters.
                 </td>
               </tr>

@@ -12,7 +12,7 @@ function ConversationCard({ athlete, sparkline }: { athlete: RosterAthlete; spar
         <span className={`gap ${color}`}>{fmtSigned1(athlete.gap)}</span>
       </div>
       <div className="level">
-        {athlete.level} · Actual {fmt1(athlete.mph)} · Predicted {fmt1(athlete.pred)}
+        {athlete.sport || "—"} · Actual {fmt1(athlete.mph)} · Predicted {fmt1(athlete.pred)}
       </div>
       <div style={{ marginTop: 6 }}>
         <Sparkline values={sparkline} width={110} height={24} color="var(--lime)" />

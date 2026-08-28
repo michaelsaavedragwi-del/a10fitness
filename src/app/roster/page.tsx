@@ -2,13 +2,18 @@ import Link from "next/link";
 import { getComputedRoster } from "@/lib/roster";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth-helpers";
+import { ageGroupFromBirthYear, AGE_GROUPS, type AgeGroup } from "@/lib/ageGroup";
 import { RosterTable, type RosterFilters, type ArchivedRow } from "@/components/dashboard/RosterTable";
 import { AwaitingData } from "@/components/dashboard/AwaitingData";
+
+function isAgeGroup(v: string): v is AgeGroup {
+  return (AGE_GROUPS as string[]).includes(v);
+}
 
 export default async function RosterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; level?: string; sex?: string; q?: string; sort?: string; dir?: string }>;
+  searchParams: Promise<{ status?: string; sport?: string; sex?: string; ageGroup?: string; q?: string; sort?: string; dir?: string }>;
 }) {
   const user = await requireUser();
   const isOwner = user.role === "owner";
@@ -16,8 +21,9 @@ export default async function RosterPage({
   const sp = await searchParams;
   const filters: RosterFilters = {
     status: sp.status === "archived" ? "archived" : "active",
-    level: sp.level ?? "",
+    sport: sp.sport ?? "",
     sex: sp.sex === "Male" || sp.sex === "Female" ? sp.sex : "",
+    ageGroup: sp.ageGroup && isAgeGroup(sp.ageGroup) ? sp.ageGroup : "",
     q: sp.q ?? "",
     sort: sp.sort ?? "name",
     dir: sp.dir === "asc" ? "asc" : sp.sort ? "desc" : "asc",
@@ -30,21 +36,23 @@ export default async function RosterPage({
       : Promise.resolve([]),
   ]);
 
-  const levels = Array.from(new Set(roster.map((a) => a.level))).sort();
+  const sports = Array.from(new Set(roster.map((a) => a.sport).filter(Boolean))).sort();
 
   const activeFiltered = roster
-    .filter((a) => (filters.level ? a.level === filters.level : true))
+    .filter((a) => (filters.sport ? a.sport === filters.sport : true))
     .filter((a) => (filters.sex ? a.sex === filters.sex : true))
+    .filter((a) => (filters.ageGroup ? a.ageGroup === filters.ageGroup : true))
     .filter((a) => (filters.q ? a.name.toLowerCase().includes(filters.q.toLowerCase()) : true));
 
   const archivedFiltered: ArchivedRow[] = archived
-    .filter((a) => (filters.level ? a.level === filters.level : true))
+    .filter((a) => (filters.sport ? a.sport === filters.sport : true))
     .filter((a) => (filters.sex ? a.sex === filters.sex : true))
+    .filter((a) => (filters.ageGroup ? ageGroupFromBirthYear(a.birthYear) === filters.ageGroup : true))
     .filter((a) => (filters.q ? a.name.toLowerCase().includes(filters.q.toLowerCase()) : true))
     .map((a) => ({
       id: a.id,
       name: a.name,
-      level: a.level,
+      sport: a.sport,
       sex: a.sex,
       birthYear: a.birthYear,
       pp: a.pp,
@@ -83,12 +91,12 @@ export default async function RosterPage({
       </div>
 
       <section className="block">
-        <RosterTable rows={activeFiltered} archivedRows={archivedFiltered} filters={filters} levels={levels} />
+        <RosterTable rows={activeFiltered} archivedRows={archivedFiltered} filters={filters} sports={sports} />
       </section>
 
       <section className="block">
         <h2>Awaiting Data</h2>
-        <p className="hint">Added with just a level and performance — held out of the prediction math until their first force-plate test.</p>
+        <p className="hint">Added with just a sport and performance — held out of the prediction math until their first force-plate test.</p>
         <AwaitingData roster={roster} />
       </section>
     </main>

@@ -10,6 +10,7 @@ import { AnatomyPanel } from "@/components/athlete/AnatomyPanel";
 import { IsaProfile } from "@/components/athlete/IsaProfile";
 import { MovementMechanicsPanel } from "@/components/athlete/MovementMechanicsPanel";
 import { ageFromBirthYear, formatDate } from "@/lib/format";
+import { ageGroupFromBirthYear } from "@/lib/ageGroup";
 import { RETEST_WINDOW_DAYS } from "@/lib/roster";
 
 export default async function AthleteProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -27,9 +28,10 @@ export default async function AthleteProfilePage({ params }: { params: Promise<{
         <div>
           <h1>{athlete.name}</h1>
           <p className="hint">
-            {athlete.level}
+            {athlete.sport || "No sport set"}
             {athlete.sex && ` · ${athlete.sex}`}
             {ageFromBirthYear(athlete.birthYear) !== null && ` · Age ${ageFromBirthYear(athlete.birthYear)}`}
+            {ageGroupFromBirthYear(athlete.birthYear) !== null && ` (${ageGroupFromBirthYear(athlete.birthYear)})`}
             {athlete.archived && (
               <>
                 {" · "}

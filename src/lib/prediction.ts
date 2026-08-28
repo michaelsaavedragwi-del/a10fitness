@@ -9,6 +9,8 @@
  * Never store the outputs of this file. Recompute on every read.
  */
 
+import { ageGroupFromBirthYear } from "./ageGroup";
+
 export const FP_SENSITIVITY = 1.6;
 
 /** Outlier exclusion from the regression fit set (see selectFitExclusions). */
@@ -31,8 +33,8 @@ export type MetricKey = (typeof METRIC_KEYS)[number];
 export interface RawAthleteInput {
   id: string;
   name: string;
-  level: string;
   sex: string | null;
+  birthYear: number | null;
   pp: number;
   ppbm: number;
   ci: number;
@@ -57,7 +59,7 @@ export interface ComputedAthlete extends RawAthleteInput {
   isManualOverride: boolean;
   hasPlateData: boolean;
   hasPerformance: boolean;
-  /** The leave-one-out, per-level re-centering offset added on top of the raw regression output. Null for manual overrides / no plate data. */
+  /** The leave-one-out, peer-group re-centering offset added on top of the raw regression output. Null for manual overrides / no plate data. */
   modelOffset: number | null;
   /** True if this athlete qualified for the fit set but was held out as a statistical outlier — they're still predicted/ranked/displayed normally, just excluded from tilting the regression line. */
   excludedFromFit: boolean;
@@ -199,27 +201,35 @@ export function computeRoster(athletes: RawAthleteInput[]): ComputedAthlete[] {
   }
 
   /**
-   * Leave-one-out re-centering, by sex first and then by level within it.
-   * Pooling every sex together into one offset is exactly how a systematic
-   * male/female difference in the pp-to-performance relationship reads as
-   * one sex "underperforming" on the dashboard — the shared regression line
-   * reflects mostly whichever sex has more fit-set data, and the other sex's
+   * Leave-one-out re-centering, preferring the most specific peer pool
+   * available (same sex + same age group, then same sex, then same age
+   * group, then everyone). Pooling every sex or every age group together
+   * into one offset is exactly how a systematic male/female or youth/adult
+   * difference in the pp-to-performance relationship reads as one group
+   * "underperforming" on the dashboard — the shared regression line reflects
+   * mostly whichever group has more fit-set data, and the other group's
    * residual-from-that-line is a real, correctable bias, not a real gap.
-   * Falls through to today's level-only behavior when sex isn't recorded, so
-   * athletes without it are computed exactly as before this field existed.
+   * Falls through gracefully when sex and/or birth year aren't recorded, so
+   * athletes missing either are computed the same as before that field
+   * existed.
    */
   function offsetFor(a: RawAthleteInput): number {
     const others = fitSet.filter((p) => p.id !== a.id);
+    const aGroup = ageGroupFromBirthYear(a.birthYear);
 
-    let pool: RawAthleteInput[] = [];
-    if (a.sex) {
-      const sameSexAndLevel = others.filter((p) => p.sex === a.sex && p.level === a.level);
-      const sameSex = others.filter((p) => p.sex === a.sex);
-      pool = sameSexAndLevel.length >= 2 ? sameSexAndLevel : sameSex.length >= 2 ? sameSex : others;
-    } else {
-      const sameLevel = others.filter((p) => p.level === a.level);
-      pool = sameLevel.length >= 2 ? sameLevel : others;
+    const candidatePools: RawAthleteInput[][] = [];
+    if (a.sex && aGroup) {
+      candidatePools.push(others.filter((p) => p.sex === a.sex && ageGroupFromBirthYear(p.birthYear) === aGroup));
     }
+    if (a.sex) {
+      candidatePools.push(others.filter((p) => p.sex === a.sex));
+    }
+    if (aGroup) {
+      candidatePools.push(others.filter((p) => ageGroupFromBirthYear(p.birthYear) === aGroup));
+    }
+    candidatePools.push(others);
+
+    const pool = candidatePools.find((p) => p.length >= 2) ?? others;
 
     if (pool.length === 0) return 0;
     const residuals = pool.map((p) => p.mph - fpPredByFitId.get(p.id)!);

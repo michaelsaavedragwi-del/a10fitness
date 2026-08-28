@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
 import { requireOwner } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/db";
+import { SPORTS } from "@/lib/sports";
 
 function num(formData: FormData, key: string): number {
   const raw = formData.get(key);
@@ -20,6 +21,11 @@ function str(formData: FormData, key: string): string {
 function sexField(formData: FormData): string | null {
   const raw = str(formData, "sex");
   return raw === "Male" || raw === "Female" ? raw : null;
+}
+
+function sportField(formData: FormData): string {
+  const raw = str(formData, "sport");
+  return (SPORTS as readonly string[]).includes(raw) ? raw : "";
 }
 
 function birthYearField(formData: FormData): number | null {
@@ -57,14 +63,14 @@ export async function createAthlete(formData: FormData) {
   await requireOwner();
 
   const name = str(formData, "name");
-  const level = str(formData, "level");
-  if (!name || !level) {
+  const sport = sportField(formData);
+  if (!name || !sport) {
     redirect("/athletes/new?error=required");
   }
 
   const data = {
     name,
-    level,
+    sport,
     sex: sexField(formData),
     birthYear: birthYearField(formData),
     pp: num(formData, "pp"),
@@ -99,8 +105,8 @@ export async function updateAthlete(athleteId: string, formData: FormData) {
   await requireOwner();
 
   const name = str(formData, "name");
-  const level = str(formData, "level");
-  if (!name || !level) {
+  const sport = sportField(formData);
+  if (!name || !sport) {
     redirect(`/athletes/${athleteId}/edit?error=required`);
   }
 
@@ -123,7 +129,7 @@ export async function updateAthlete(athleteId: string, formData: FormData) {
       where: { id: athleteId },
       data: {
         name,
-        level,
+        sport,
         sex: sexField(formData),
         birthYear: birthYearField(formData),
         predOverride: predOverride !== null && Number.isFinite(predOverride) ? predOverride : null,

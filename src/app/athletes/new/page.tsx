@@ -1,7 +1,6 @@
 import { requireOwner } from "@/lib/auth-helpers";
 import { createAthlete } from "@/lib/actions/athletes";
-
-const LEVELS = ["Pro", "D1", "D2", "D3", "JUCO", "High School"];
+import { SPORTS } from "@/lib/sports";
 
 export default async function NewAthletePage({
   searchParams,
@@ -18,7 +17,7 @@ export default async function NewAthletePage({
       </div>
 
       <form className="card" action={createAthlete}>
-        {error === "required" && <div className="auth-error">Name and level are required.</div>}
+        {error === "required" && <div className="auth-error">Name and sport are required.</div>}
         {error === "duplicate" && <div className="auth-error">An athlete with that name already exists.</div>}
 
         <div className="form-grid">
@@ -27,13 +26,17 @@ export default async function NewAthletePage({
             <input type="text" name="name" required autoFocus />
           </label>
           <label>
-            Level
-            <input type="text" name="level" list="levels" required />
-            <datalist id="levels">
-              {LEVELS.map((l) => (
-                <option key={l} value={l} />
+            Sport
+            <select name="sport" defaultValue="" required>
+              <option value="" disabled>
+                Select a sport
+              </option>
+              {SPORTS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
-            </datalist>
+            </select>
           </label>
           <label>
             Sex
@@ -50,7 +53,7 @@ export default async function NewAthletePage({
         </div>
 
         <p className="hint">
-          Force-plate metrics are optional — an athlete can be added with just a level and a
+          Force-plate metrics are optional — an athlete can be added with just a sport and a
           performance value, and held out of the prediction model until their first real test
           arrives.
         </p>

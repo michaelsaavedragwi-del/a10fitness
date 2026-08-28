@@ -23,9 +23,6 @@ export interface PreviewUnmatchedTest {
   birthYear: number | null;
 }
 
-/** Level assigned to an athlete auto-created from an unmatched Hawkin profile — Hawkin has no concept of level. */
-export const AUTO_CREATED_LEVEL = "Unassigned";
-
 function parseBirthYear(dob: string | undefined): number | null {
   if (!dob) return null;
   const n = parseInt(dob, 10);
@@ -144,11 +141,11 @@ export async function importMatchedTest(test: PreviewMatchedTest): Promise<"impo
 /**
  * Creates a new athlete from an unmatched Hawkin profile, then imports the
  * test that surfaced them — this is the explicit, one-click "Create & Import"
- * action, never automatic. Level defaults to AUTO_CREATED_LEVEL since Hawkin
- * doesn't send one; a coach corrects it later on the Roster page. If an
- * athlete with this exact name already exists (e.g. a duplicate profile
- * click, or someone else just created it), reuses that athlete instead of
- * erroring — the unique constraint on Athlete.name is the source of truth.
+ * action, never automatic. Sport is left blank since Hawkin has no concept of
+ * it; a coach assigns one later on the Roster page. If an athlete with this
+ * exact name already exists (e.g. a duplicate profile click, or someone else
+ * just created it), reuses that athlete instead of erroring — the unique
+ * constraint on Athlete.name is the source of truth.
  */
 export async function createAthleteAndImport(
   test: PreviewUnmatchedTest,
@@ -161,7 +158,7 @@ export async function createAthleteAndImport(
     where: { name: test.profileName },
     create: {
       name: test.profileName,
-      level: AUTO_CREATED_LEVEL,
+      sport: "",
       birthYear: test.birthYear,
       pp: 0,
       ppbm: 0,

@@ -8,14 +8,15 @@ import {
   type MetricStanding,
   type RawAthleteInput,
 } from "@/lib/prediction";
+import { ageGroupFromBirthYear, type AgeGroup } from "@/lib/ageGroup";
 import { daysBetweenClubDays } from "@/lib/timezone";
 
 export const RETEST_WINDOW_DAYS = 60;
 export const REPORT_REVIEW_WINDOW_DAYS = 60;
 
 export interface RosterAthlete extends ComputedAthlete {
-  level: string;
-  birthYear: number | null;
+  sport: string;
+  ageGroup: AgeGroup | null;
   lastForcePlateTestAt: Date | null;
   daysSinceLastTest: number | null;
   retestOverdueByDays: number | null;
@@ -25,8 +26,8 @@ function toRaw(a: Athlete): RawAthleteInput {
   return {
     id: a.id,
     name: a.name,
-    level: a.level,
     sex: a.sex ?? null,
+    birthYear: a.birthYear ?? null,
     pp: a.pp,
     ppbm: a.ppbm,
     ci: a.ci,
@@ -58,7 +59,14 @@ function withRetestInfo<T extends ComputedAthlete>(computed: T, athlete: Athlete
     daysSinceLastTest !== null && daysSinceLastTest > RETEST_WINDOW_DAYS
       ? daysSinceLastTest - RETEST_WINDOW_DAYS
       : null;
-  return { ...computed, birthYear: athlete.birthYear, lastForcePlateTestAt, daysSinceLastTest, retestOverdueByDays };
+  return {
+    ...computed,
+    sport: athlete.sport,
+    ageGroup: ageGroupFromBirthYear(athlete.birthYear),
+    lastForcePlateTestAt,
+    daysSinceLastTest,
+    retestOverdueByDays,
+  };
 }
 
 async function loadActiveAthletesWithTests() {
@@ -170,8 +178,9 @@ export async function getBiggestMovers(limit = 5): Promise<{ power: Mover[]; per
 export interface LeaderboardEntry {
   athleteId: string;
   athleteName: string;
-  level: string;
+  sport: string;
   sex: string | null;
+  ageGroup: AgeGroup | null;
   value: number;
 }
 
@@ -181,8 +190,9 @@ export async function getLeaderboards(): Promise<{ performance: LeaderboardEntry
   const toEntry = (a: Athlete, key: "mph" | "pp"): LeaderboardEntry => ({
     athleteId: a.id,
     athleteName: a.name,
-    level: a.level,
+    sport: a.sport,
     sex: a.sex ?? null,
+    ageGroup: ageGroupFromBirthYear(a.birthYear),
     value: a[key],
   });
 
@@ -217,7 +227,7 @@ export async function getPpSparklines(athleteIds: string[]): Promise<Record<stri
 export interface ReportsListItem {
   id: string;
   name: string;
-  level: string;
+  sport: string;
   category: Category;
   gap: number | null;
   lastReportReviewedAt: Date | null;
@@ -243,7 +253,7 @@ export async function getReportsList(): Promise<ReportsListItem[]> {
     return {
       id: a.id,
       name: a.name,
-      level: a.level,
+      sport: a.sport,
       category: a.category,
       gap: a.gap,
       lastReportReviewedAt,

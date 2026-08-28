@@ -22,10 +22,10 @@ model User {
 model Athlete {
   id    String @id @default(cuid())
   name  String @unique // full name — the match key on import
-  level String // e.g. Pro, D1, D2, D3, JUCO, High School
+  sport String @default("") // Baseball | Softball | Soccer | Volleyball | Football | Basketball ("" = not yet assigned)
 
-  sex       String? // "Male" | "Female" | null (unset) — used to re-center predictions by sex, not just level
-  birthYear Int?    // just the year (that's all Hawkin's own `dob` field carries) — age is computed on every read, never stored raw
+  sex       String? // "Male" | "Female" | null (unset) — used to re-center predictions by sex
+  birthYear Int?    // just the year (that's all Hawkin's own `dob` field carries) — age and age group are computed on every read, never stored raw
 
   // Current-best (PR) force-plate metrics
   pp    Float // CMJ peak power (W)
