@@ -66,6 +66,72 @@ export function extractExtendedMetrics(test: HawkinTest): ExtendedMetrics {
   return metrics;
 }
 
+/**
+ * Hawkin's "Tru Strength" line — isometric/free-run shoulder internal and
+ * external rotation strength testing. Two canonical test types share this
+ * exact metric key set (confirmed against a live account, 2026-08-28):
+ * "TS Isometric Test" (a held contraction) and "TS Free Run" (a faster,
+ * more dynamic pull) — same metrics, different protocol, so `mode` is
+ * captured alongside them rather than assumed.
+ */
+export const TRU_STRENGTH_CANONICAL_IDS = {
+  isometric: "umnEZPgi6zaxuw0KhUpM",
+  freeRun: "4KlQgKmBxbOY6uKTLDFL",
+} as const;
+
+export const TRU_STRENGTH_METRIC_KEYS = {
+  peakForce: "Peak Force(N)",
+  avgForce: "Avg. Force(N)",
+  netForce50: "Net Force at 50 ms(N)",
+  netForce100: "Net Force at 100 ms(N)",
+  netForce150: "Net Force at 150 ms(N)",
+  netForce200: "Net Force at 200 ms(N)",
+  netForce250: "Net Force at 250 ms(N)",
+  peakRfd: "Peak RFD(N/s)",
+  timeToPeakForce: "Time to Peak Force(s)",
+} as const;
+
+export interface TruStrengthMetrics {
+  peakForce: number;
+  avgForce: number;
+  netForce50: number;
+  netForce100: number;
+  netForce150: number;
+  netForce200: number;
+  netForce250: number;
+  peakRfd: number;
+  timeToPeakForce: number;
+}
+
+export function extractTruStrengthMetrics(test: HawkinTest): TruStrengthMetrics | null {
+  const metrics: Partial<TruStrengthMetrics> = {};
+  for (const [field, key] of Object.entries(TRU_STRENGTH_METRIC_KEYS) as [keyof TruStrengthMetrics, string][]) {
+    const value = test[key];
+    if (typeof value !== "number") return null;
+    metrics[field] = value;
+  }
+  return metrics as TruStrengthMetrics;
+}
+
+/** Side and rotation direction ride on the test-type's tags, not metric keys. */
+export function truStrengthSide(test: HawkinTest): "Left" | "Right" | null {
+  const names = test.testType.tags.map((t) => t.name);
+  if (names.includes("Left")) return "Left";
+  if (names.includes("Right")) return "Right";
+  return null;
+}
+
+export function truStrengthDirection(test: HawkinTest): "Internal" | "External" | null {
+  const names = test.testType.tags.map((t) => t.name);
+  if (names.includes("Internal Rotation")) return "Internal";
+  if (names.includes("External Rotation")) return "External";
+  return null;
+}
+
+export function truStrengthMode(canonicalId: string): "Isometric" | "Free Run" {
+  return canonicalId === TRU_STRENGTH_CANONICAL_IDS.isometric ? "Isometric" : "Free Run";
+}
+
 /** Normalizes a name for matching: lowercase, trim, collapse whitespace, strip punctuation. */
 export function normalizeName(name: string): string {
   return name

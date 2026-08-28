@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { importSelectedTests, dismissUnmatchedTest, createAndImportUnmatched } from "@/lib/actions/sync";
-import type { SyncPreview as SyncPreviewData, PreviewMatchedTest, PreviewUnmatchedTest } from "@/lib/hawkin/sync";
+import {
+  importSelectedTruStrengthTests,
+  dismissUnmatchedTruStrengthTest,
+  createAndImportUnmatchedTruStrength,
+} from "@/lib/actions/truStrengthSync";
+import type {
+  TruStrengthSyncPreview as TruStrengthSyncPreviewData,
+  PreviewMatchedTruStrengthTest,
+  PreviewUnmatchedTruStrengthTest,
+} from "@/lib/hawkin/truStrengthSync";
 
-export function SyncPreview() {
-  const [preview, setPreview] = useState<SyncPreviewData | null>(null);
+export function TruStrengthSyncPreview() {
+  const [preview, setPreview] = useState<TruStrengthSyncPreviewData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
@@ -17,15 +25,15 @@ export function SyncPreview() {
     setError(null);
     setResult(null);
     try {
-      const res = await fetch("/api/sync/preview");
+      const res = await fetch("/api/sync/tru-strength-preview");
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Preview failed");
       setPreview(data);
       const initialSelected: Record<string, boolean> = {};
-      for (const t of data.matched as PreviewMatchedTest[]) initialSelected[t.testId] = true;
+      for (const t of data.matched as PreviewMatchedTruStrengthTest[]) initialSelected[t.testId] = true;
       setSelected(initialSelected);
       const initialSelectedNew: Record<string, boolean> = {};
-      for (const t of data.unmatched as PreviewUnmatchedTest[]) {
+      for (const t of data.unmatched as PreviewUnmatchedTruStrengthTest[]) {
         if (t.metrics) initialSelectedNew[t.testId] = false; // opt-in, not pre-checked — this creates a permanent roster entry
       }
       setSelectedNew(initialSelectedNew);
@@ -41,7 +49,7 @@ export function SyncPreview() {
     const toImport = preview.matched.filter((t) => selected[t.testId]);
     setLoading(true);
     try {
-      const res = await importSelectedTests(toImport);
+      const res = await importSelectedTruStrengthTests(toImport);
       setResult(`Imported ${res.imported} test(s)${res.duplicates ? `, skipped ${res.duplicates} duplicate(s)` : ""}.`);
       await fetchPreview();
     } finally {
@@ -52,17 +60,17 @@ export function SyncPreview() {
   async function handleDismiss(testId: string, profileName: string) {
     setLoading(true);
     try {
-      await dismissUnmatchedTest(testId, profileName);
+      await dismissUnmatchedTruStrengthTest(testId, profileName);
       await fetchPreview();
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleCreateAndImport(tests: PreviewUnmatchedTest[]) {
+  async function handleCreateAndImport(tests: PreviewUnmatchedTruStrengthTest[]) {
     setLoading(true);
     try {
-      const res = await createAndImportUnmatched(tests);
+      const res = await createAndImportUnmatchedTruStrength(tests);
       const parts = [`Created ${res.created} new athlete(s)`];
       if (res.duplicates) parts.push(`${res.duplicates} already existed`);
       if (res.failures.length) parts.push(`${res.failures.length} failed: ${res.failures.join("; ")}`);
@@ -83,7 +91,7 @@ export function SyncPreview() {
   return (
     <div className="card">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
-        <h3 style={{ margin: 0 }}>Import Preview</h3>
+        <h3 style={{ margin: 0 }}>Tru Strength Import Preview</h3>
         <button className="btn btn-sm" onClick={fetchPreview} disabled={loading}>
           {loading ? "Checking…" : "Refresh"}
         </button>
@@ -107,11 +115,11 @@ export function SyncPreview() {
                     <th></th>
                     <th>Athlete</th>
                     <th>Recorded</th>
-                    <th>Peak Power</th>
-                    <th>Peak Power/BM</th>
-                    <th>Conc. Impulse</th>
-                    <th>Braking RFD</th>
-                    <th>mRSI</th>
+                    <th>Side</th>
+                    <th>Direction</th>
+                    <th>Mode</th>
+                    <th>Peak Force</th>
+                    <th>Peak RFD</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -126,11 +134,11 @@ export function SyncPreview() {
                       </td>
                       <td className="name-cell">{t.athleteName}</td>
                       <td>{new Date(t.recordedDate).toLocaleDateString()}</td>
-                      <td className="num">{t.metrics.pp.toFixed(1)}</td>
-                      <td className="num">{t.metrics.ppbm.toFixed(1)}</td>
-                      <td className="num">{t.metrics.ci.toFixed(1)}</td>
-                      <td className="num">{t.metrics.brfd.toFixed(1)}</td>
-                      <td className="num">{t.metrics.mrsi.toFixed(2)}</td>
+                      <td>{t.side ?? "—"}</td>
+                      <td>{t.direction ?? "—"}</td>
+                      <td>{t.mode}</td>
+                      <td className="num">{t.metrics.peakForce.toFixed(1)}</td>
+                      <td className="num">{t.metrics.peakRfd.toFixed(1)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -159,7 +167,9 @@ export function SyncPreview() {
                     <th></th>
                     <th>Profile Name</th>
                     <th>Recorded</th>
-                    <th>Peak Power</th>
+                    <th>Side</th>
+                    <th>Direction</th>
+                    <th>Peak Force</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -181,7 +191,9 @@ export function SyncPreview() {
                       </td>
                       <td className="name-cell">{t.profileName}</td>
                       <td>{new Date(t.recordedDate).toLocaleDateString()}</td>
-                      <td className="num">{t.metrics ? t.metrics.pp.toFixed(1) : "—"}</td>
+                      <td>{t.side ?? "—"}</td>
+                      <td>{t.direction ?? "—"}</td>
+                      <td className="num">{t.metrics ? t.metrics.peakForce.toFixed(1) : "—"}</td>
                       <td>
                         <div style={{ display: "flex", gap: 6 }}>
                           {t.metrics && (

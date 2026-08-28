@@ -89,7 +89,10 @@ export async function getComputedRoster(): Promise<RosterAthlete[]> {
 export async function getAthleteProfile(id: string) {
   const athlete = await prisma.athlete.findUnique({
     where: { id },
-    include: { tests: { orderBy: { date: "desc" } } },
+    include: {
+      tests: { orderBy: { date: "desc" } },
+      truStrengthTests: { orderBy: { date: "desc" } },
+    },
   });
   if (!athlete) return null;
 
@@ -113,7 +116,12 @@ export async function getAthleteProfile(id: string) {
     computed = all.find((a) => a.id === id)!;
   }
 
-  return { athlete, computed: withRetestInfo(computed, athlete), tests: athlete.tests };
+  return {
+    athlete,
+    computed: withRetestInfo(computed, athlete),
+    tests: athlete.tests,
+    truStrengthTests: athlete.truStrengthTests,
+  };
 }
 
 export interface Mover {

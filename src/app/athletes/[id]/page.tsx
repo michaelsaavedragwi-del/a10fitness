@@ -6,9 +6,8 @@ import { archiveAthlete, unarchiveAthlete, deleteAthlete } from "@/lib/actions/a
 import { PredictionPanel } from "@/components/athlete/PredictionPanel";
 import { MetricGrid } from "@/components/athlete/MetricGrid";
 import { TestHistory } from "@/components/athlete/TestHistory";
-import { AnatomyPanel } from "@/components/athlete/AnatomyPanel";
-import { IsaProfile } from "@/components/athlete/IsaProfile";
 import { MovementMechanicsPanel } from "@/components/athlete/MovementMechanicsPanel";
+import { TruStrengthPanel } from "@/components/athlete/TruStrengthPanel";
 import { ageFromBirthYear, formatDate } from "@/lib/format";
 import { ageGroupFromBirthYear } from "@/lib/ageGroup";
 import { RETEST_WINDOW_DAYS } from "@/lib/roster";
@@ -19,7 +18,7 @@ export default async function AthleteProfilePage({ params }: { params: Promise<{
   const profile = await getAthleteProfile(id);
   if (!profile) notFound();
 
-  const { athlete, computed, tests } = profile;
+  const { athlete, computed, tests, truStrengthTests } = profile;
   const isOwner = user.role === "owner";
 
   return (
@@ -110,11 +109,7 @@ export default async function AthleteProfilePage({ params }: { params: Promise<{
       </section>
 
       <section className="block">
-        <IsaProfile isa={athlete.isa} />
-      </section>
-
-      <section className="block">
-        <AnatomyPanel rom={athlete.rom} />
+        <TruStrengthPanel athleteId={athlete.id} tests={truStrengthTests} isOwner={isOwner} />
       </section>
 
       <section className="block">

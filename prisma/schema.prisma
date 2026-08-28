@@ -45,7 +45,8 @@ model Athlete {
   isa String @default("None") // movement profile: "Narrow" | "Wide" | "None"
   rom Json? // range-of-motion assessment (see spec §7)
 
-  tests TestEntry[]
+  tests            TestEntry[]
+  truStrengthTests TruStrengthTest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -78,6 +79,36 @@ model TestEntry {
   peakVelocity            Float @default(0) // m/s, higher is better
 
   externalTestId String? @unique // external (force-plate provider) test id, so a synced test is never imported twice
+
+  @@index([athleteId])
+}
+
+// Hawkin "Tru Strength" shoulder isometric/free-run rotation strength tests —
+// held entirely separate from TestEntry (force-plate CMJ readings): different
+// device protocol, different metrics, no PR-tracking on Athlete.
+model TruStrengthTest {
+  id        String   @id @default(cuid())
+  athlete   Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  athleteId String
+  date      DateTime
+
+  side      String? // "Left" | "Right" | null (not always tagged on the Hawkin test type)
+  direction String? // "Internal" | "External" | null (not always tagged)
+  mode      String  @default("Free Run") // "Isometric" | "Free Run" — Hawkin's two Tru Strength protocols
+
+  peakForce       Float // N
+  avgForce        Float // N
+  netForce50      Float // N at 50ms
+  netForce100     Float // N at 100ms
+  netForce150     Float // N at 150ms
+  netForce200     Float // N at 200ms
+  netForce250     Float // N at 250ms
+  peakRfd         Float // N/s
+  timeToPeakForce Float // s
+
+  externalTestId String? @unique // Hawkin test id, so a synced test is never imported twice
+
+  createdAt DateTime @default(now())
 
   @@index([athleteId])
 }

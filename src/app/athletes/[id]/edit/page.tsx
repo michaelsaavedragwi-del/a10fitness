@@ -3,18 +3,6 @@ import { requireOwner } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/db";
 import { updateAthlete } from "@/lib/actions/athletes";
 import { SPORTS } from "@/lib/sports";
-import { JOINTS } from "@/lib/rom";
-import { clubLocalDayKey } from "@/lib/timezone";
-
-const ISA_OPTIONS = ["None", "Narrow", "Wide"];
-
-function romTemplate(): string {
-  const tests: Record<string, unknown> = {};
-  for (const j of JOINTS) {
-    tests[j.key] = { l: 0, r: 0, flag: "good", note: "" };
-  }
-  return JSON.stringify({ date: clubLocalDayKey(new Date()), tests }, null, 2);
-}
 
 export default async function EditAthletePage({
   params,
@@ -40,7 +28,6 @@ export default async function EditAthletePage({
       <form className="card" action={boundUpdate}>
         {error === "required" && <div className="auth-error">Name and sport are required.</div>}
         {error === "duplicate" && <div className="auth-error">An athlete with that name already exists.</div>}
-        {error === "rom-json" && <div className="auth-error">Range-of-motion data isn&apos;t valid JSON.</div>}
 
         <div className="form-grid">
           <label>
@@ -88,34 +75,7 @@ export default async function EditAthletePage({
             Manual predicted-value override
             <input type="number" step="any" name="predOverride" defaultValue={athlete.predOverride ?? ""} />
           </label>
-          <label>
-            Movement profile (ISA)
-            <select name="isa" defaultValue={athlete.isa}>
-              {ISA_OPTIONS.map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
-            </select>
-          </label>
         </div>
-
-        <label>
-          Range-of-motion assessment (JSON)
-          <textarea
-            name="rom"
-            rows={10}
-            placeholder={romTemplate()}
-            style={{ fontFamily: "monospace", fontSize: "0.8rem" }}
-            defaultValue={athlete.rom ? JSON.stringify(athlete.rom, null, 2) : ""}
-          />
-        </label>
-        <p className="hint">
-          Leave blank until you&apos;ve actually assessed the athlete — the placeholder above
-          shows the expected shape. Joints: {JOINTS.map((j) => j.key).join(", ")}.{" "}
-          <code>flag</code> is <code>good</code>, <code>warning</code>, or <code>red</code>, and
-          only needs to be set on the worse side for a bilateral asymmetry.
-        </p>
 
         <p className="hint">
           Force-plate PRs and performance PRs update automatically from test history — edit or

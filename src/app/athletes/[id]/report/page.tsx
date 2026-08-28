@@ -6,7 +6,6 @@ import { METRIC_KEYS } from "@/lib/prediction";
 import { METRIC_LABELS, METRIC_UNITS, fmt1, fmtSignedPercent, formatDate } from "@/lib/format";
 import { ProgressChart } from "@/components/athlete/ProgressChart";
 import { Sparkline } from "@/components/Sparkline";
-import { IsaProfile } from "@/components/athlete/IsaProfile";
 import { PrintButton } from "@/components/PrintButton";
 
 export default async function AthleteReportPage({ params }: { params: Promise<{ id: string }> }) {
@@ -118,10 +117,6 @@ export default async function AthleteReportPage({ params }: { params: Promise<{ 
             </tbody>
           </table>
         </div>
-      </section>
-
-      <section className="block">
-        <IsaProfile isa={athlete.isa} />
       </section>
     </main>
   );

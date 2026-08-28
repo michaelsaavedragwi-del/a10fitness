@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runNightlySync } from "@/lib/hawkin/sync";
+import { runNightlyTruStrengthSync } from "@/lib/hawkin/truStrengthSync";
 
 export async function GET(request: Request) {
   // Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` automatically when
@@ -13,10 +14,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  try {
-    const result = await runNightlySync();
-    return NextResponse.json({ ok: true, ...result });
-  } catch (err) {
-    return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "Unknown error" }, { status: 500 });
-  }
+  // Run independently — a failure in one shouldn't block the other from importing.
+  const [forcePlate, truStrength] = await Promise.allSettled([runNightlySync(), runNightlyTruStrengthSync()]);
+
+  const ok = forcePlate.status === "fulfilled" && truStrength.status === "fulfilled";
+  return NextResponse.json(
+    {
+      ok,
+      forcePlate: forcePlate.status === "fulfilled" ? forcePlate.value : { error: String(forcePlate.reason) },
+      truStrength: truStrength.status === "fulfilled" ? truStrength.value : { error: String(truStrength.reason) },
+    },
+    { status: ok ? 200 : 500 },
+  );
 }

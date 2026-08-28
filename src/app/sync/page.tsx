@@ -2,13 +2,15 @@ import { requireUser } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 import { SyncPreview } from "@/components/sync/SyncPreview";
+import { TruStrengthSyncPreview } from "@/components/sync/TruStrengthSyncPreview";
 
 export default async function SyncPage() {
   const user = await requireUser();
   const isOwner = user.role === "owner";
 
-  const [syncState, configured] = await Promise.all([
+  const [syncState, truStrengthSyncState, configured] = await Promise.all([
     prisma.syncState.findUnique({ where: { id: "main" } }),
+    prisma.syncState.findUnique({ where: { id: "tru-strength" } }),
     Promise.resolve(Boolean(process.env.HAWKIN_API_KEY)),
   ]);
 
@@ -34,17 +36,33 @@ export default async function SyncPage() {
           )}
           <p className="hint">
             Nightly auto-sync runs against <code>/api/cron/hawkin-sync</code>, gated by the{" "}
-            <code>CRON_SECRET</code> header. Last run:{" "}
+            <code>CRON_SECRET</code> header. Last force-plate run:{" "}
             {syncState?.lastRunAt ? formatDate(syncState.lastRunAt) : "never"}
-            {syncState ? ` — imported ${syncState.imported} test(s) last run` : ""}.
+            {syncState ? ` — imported ${syncState.imported} test(s) last run` : ""}. Last Tru
+            Strength run: {truStrengthSyncState?.lastRunAt ? formatDate(truStrengthSyncState.lastRunAt) : "never"}
+            {truStrengthSyncState ? ` — imported ${truStrengthSyncState.imported} test(s) last run` : ""}.
           </p>
         </div>
       </section>
 
       <section className="block">
+        <h2>Force-Plate Tests</h2>
         {isOwner ? (
           configured ? (
             <SyncPreview />
+          ) : (
+            <div className="card empty-state">Connect your force-plate provider&apos;s API credentials to preview and import tests.</div>
+          )
+        ) : (
+          <div className="card empty-state">Only an owner can run an import. Ask a coach with owner access to sync new tests.</div>
+        )}
+      </section>
+
+      <section className="block">
+        <h2>Tru Strength Tests</h2>
+        {isOwner ? (
+          configured ? (
+            <TruStrengthSyncPreview />
           ) : (
             <div className="card empty-state">Connect your force-plate provider&apos;s API credentials to preview and import tests.</div>
           )

@@ -112,17 +112,6 @@ export async function updateAthlete(athleteId: string, formData: FormData) {
 
   const predOverrideRaw = str(formData, "predOverride");
   const predOverride = predOverrideRaw ? parseFloat(predOverrideRaw) : null;
-  const isa = str(formData, "isa") || "None";
-
-  const romRaw = str(formData, "rom");
-  let rom: Prisma.InputJsonValue | typeof Prisma.JsonNull = Prisma.JsonNull;
-  if (romRaw) {
-    try {
-      rom = JSON.parse(romRaw);
-    } catch {
-      redirect(`/athletes/${athleteId}/edit?error=rom-json`);
-    }
-  }
 
   try {
     await prisma.athlete.update({
@@ -133,8 +122,6 @@ export async function updateAthlete(athleteId: string, formData: FormData) {
         sex: sexField(formData),
         birthYear: birthYearField(formData),
         predOverride: predOverride !== null && Number.isFinite(predOverride) ? predOverride : null,
-        isa,
-        rom,
       },
     });
   } catch (err) {

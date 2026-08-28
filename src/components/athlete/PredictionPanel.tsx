@@ -28,7 +28,7 @@ export function PredictionPanel({ athlete }: { athlete: ComputedAthlete }) {
             ? "Prediction set manually by a coach — overrides the model."
             : athlete.pred === null
               ? "No model prediction available."
-              : `Regression model${athlete.modelOffset !== null ? `, level-recentering offset ${fmtSigned1(athlete.modelOffset)}` : ""}.`}
+              : `Regression model${athlete.modelOffset !== null ? `, peer-group recentering offset ${fmtSigned1(athlete.modelOffset)}` : ""}.`}
         </span>
       </div>
     </div>
