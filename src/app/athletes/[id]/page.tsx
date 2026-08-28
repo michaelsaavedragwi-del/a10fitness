@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth-helpers";
 import { getAthleteProfile } from "@/lib/roster";
 import { archiveAthlete, unarchiveAthlete, deleteAthlete } from "@/lib/actions/athletes";
-import { PredictionPanel } from "@/components/athlete/PredictionPanel";
 import { MetricGrid } from "@/components/athlete/MetricGrid";
 import { TestHistory } from "@/components/athlete/TestHistory";
 import { MovementMechanicsPanel } from "@/components/athlete/MovementMechanicsPanel";
@@ -101,10 +100,6 @@ export default async function AthleteProfilePage({ params }: { params: Promise<{
         <div className="card">
           <ProgressChart tests={[...tests].reverse()} />
         </div>
-      </section>
-
-      <section className="block">
-        <PredictionPanel athlete={computed} />
       </section>
 
       <section className="block">
