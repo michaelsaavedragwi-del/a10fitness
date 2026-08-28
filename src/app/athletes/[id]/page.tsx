@@ -8,6 +8,7 @@ import { MetricGrid } from "@/components/athlete/MetricGrid";
 import { TestHistory } from "@/components/athlete/TestHistory";
 import { MovementMechanicsPanel } from "@/components/athlete/MovementMechanicsPanel";
 import { TruStrengthPanel } from "@/components/athlete/TruStrengthPanel";
+import { ProgressChart } from "@/components/athlete/ProgressChart";
 import { ageFromBirthYear, formatDate } from "@/lib/format";
 import { ageGroupFromBirthYear } from "@/lib/ageGroup";
 import { RETEST_WINDOW_DAYS } from "@/lib/roster";
@@ -94,6 +95,13 @@ export default async function AthleteProfilePage({ params }: { params: Promise<{
           )}
         </div>
       </div>
+
+      <section className="block">
+        <h2>Peak Power Over Time</h2>
+        <div className="card">
+          <ProgressChart tests={[...tests].reverse()} />
+        </div>
+      </section>
 
       <section className="block">
         <PredictionPanel athlete={computed} />
