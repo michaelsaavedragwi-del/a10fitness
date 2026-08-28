@@ -2,15 +2,14 @@ import type { TestEntry } from "@prisma/client";
 import { Sparkline } from "@/components/Sparkline";
 import { EXTENDED_METRIC_KEYS, type ExtendedMetricKey } from "@/lib/hawkin/mapping";
 
-type Direction = "higher" | "lower" | "symmetry";
+type Direction = "higher" | "lower";
 
-const METRIC_META: Record<ExtendedMetricKey, { label: string; unit: string; direction: Direction; group: string }> = {
+// L|R Braking/Propulsive/Landing Impulse Index live in the dedicated
+// AsymmetryPanel now, shown right under Metrics — not duplicated here.
+const METRIC_META: Partial<Record<ExtendedMetricKey, { label: string; unit: string; direction: Direction; group: string }>> = {
   peakLandingForce: { label: "Peak Landing Force", unit: "N", direction: "lower", group: "Landing" },
   timeToStabilization: { label: "Time to Stabilization", unit: "ms", direction: "lower", group: "Landing" },
   landingPerformanceIndex: { label: "Landing Performance Index", unit: "", direction: "higher", group: "Landing" },
-  lrBrakingImpulseIndex: { label: "L|R Braking Impulse Index", unit: "%", direction: "symmetry", group: "Asymmetry" },
-  lrPropulsiveImpulseIndex: { label: "L|R Propulsive Impulse Index", unit: "%", direction: "symmetry", group: "Asymmetry" },
-  lrLandingImpulseIndex: { label: "L|R Landing Impulse Index", unit: "%", direction: "symmetry", group: "Asymmetry" },
   propulsivePhase: { label: "Propulsive Phase Duration", unit: "s", direction: "lower", group: "Phase & Velocity" },
   takeoffVelocity: { label: "Takeoff Velocity", unit: "m/s", direction: "higher", group: "Phase & Velocity" },
   peakVelocity: { label: "Peak Velocity", unit: "m/s", direction: "higher", group: "Phase & Velocity" },
@@ -19,10 +18,9 @@ const METRIC_META: Record<ExtendedMetricKey, { label: string; unit: string; dire
 const DIRECTION_HINT: Record<Direction, string> = {
   higher: "higher is better",
   lower: "lower is better",
-  symmetry: "closer to 0 is better",
 };
 
-const GROUPS = ["Landing", "Asymmetry", "Phase & Velocity"];
+const GROUPS = ["Landing", "Phase & Velocity"];
 
 export function MovementMechanicsPanel({ tests }: { tests: TestEntry[] }) {
   const latest = tests[0]; // tests are ordered newest-first
@@ -51,9 +49,9 @@ export function MovementMechanicsPanel({ tests }: { tests: TestEntry[] }) {
           <h4 style={{ margin: "8px 0" }}>{group}</h4>
           <div className="metric-grid">
             {(Object.keys(EXTENDED_METRIC_KEYS) as ExtendedMetricKey[])
-              .filter((key) => METRIC_META[key].group === group)
+              .filter((key) => METRIC_META[key]?.group === group)
               .map((key) => {
-                const meta = METRIC_META[key];
+                const meta = METRIC_META[key]!;
                 const value = latest[key];
                 const measured = value !== 0;
                 const series = chronological.map((t) => t[key]);

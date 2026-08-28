@@ -5,6 +5,7 @@ import { getAthleteProfile } from "@/lib/roster";
 import { archiveAthlete, unarchiveAthlete, deleteAthlete } from "@/lib/actions/athletes";
 import { MetricGrid } from "@/components/athlete/MetricGrid";
 import { TestHistory } from "@/components/athlete/TestHistory";
+import { AsymmetryPanel } from "@/components/athlete/AsymmetryPanel";
 import { MovementMechanicsPanel } from "@/components/athlete/MovementMechanicsPanel";
 import { TruStrengthPanel } from "@/components/athlete/TruStrengthPanel";
 import { ProgressChart } from "@/components/athlete/ProgressChart";
@@ -105,6 +106,10 @@ export default async function AthleteProfilePage({ params }: { params: Promise<{
       <section className="block">
         <h2>Metrics</h2>
         <MetricGrid athlete={computed} />
+      </section>
+
+      <section className="block">
+        <AsymmetryPanel tests={tests} />
       </section>
 
       <section className="block">
