@@ -8,7 +8,7 @@ import { AwaitingData } from "@/components/dashboard/AwaitingData";
 export default async function RosterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; level?: string; q?: string; sort?: string; dir?: string }>;
+  searchParams: Promise<{ status?: string; level?: string; sex?: string; q?: string; sort?: string; dir?: string }>;
 }) {
   const user = await requireUser();
   const isOwner = user.role === "owner";
@@ -17,6 +17,7 @@ export default async function RosterPage({
   const filters: RosterFilters = {
     status: sp.status === "archived" ? "archived" : "active",
     level: sp.level ?? "",
+    sex: sp.sex === "Male" || sp.sex === "Female" ? sp.sex : "",
     q: sp.q ?? "",
     sort: sp.sort ?? "name",
     dir: sp.dir === "asc" ? "asc" : sp.sort ? "desc" : "asc",
@@ -33,15 +34,19 @@ export default async function RosterPage({
 
   const activeFiltered = roster
     .filter((a) => (filters.level ? a.level === filters.level : true))
+    .filter((a) => (filters.sex ? a.sex === filters.sex : true))
     .filter((a) => (filters.q ? a.name.toLowerCase().includes(filters.q.toLowerCase()) : true));
 
   const archivedFiltered: ArchivedRow[] = archived
     .filter((a) => (filters.level ? a.level === filters.level : true))
+    .filter((a) => (filters.sex ? a.sex === filters.sex : true))
     .filter((a) => (filters.q ? a.name.toLowerCase().includes(filters.q.toLowerCase()) : true))
     .map((a) => ({
       id: a.id,
       name: a.name,
       level: a.level,
+      sex: a.sex,
+      birthYear: a.birthYear,
       pp: a.pp,
       ppbm: a.ppbm,
       ci: a.ci,

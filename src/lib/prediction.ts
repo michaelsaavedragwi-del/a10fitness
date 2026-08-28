@@ -32,6 +32,7 @@ export interface RawAthleteInput {
   id: string;
   name: string;
   level: string;
+  sex: string | null;
   pp: number;
   ppbm: number;
   ci: number;
@@ -197,9 +198,29 @@ export function computeRoster(athletes: RawAthleteInput[]): ComputedAthlete[] {
     return meanVelo + FP_SENSITIVITY * (raw - meanVelo);
   }
 
+  /**
+   * Leave-one-out re-centering, by sex first and then by level within it.
+   * Pooling every sex together into one offset is exactly how a systematic
+   * male/female difference in the pp-to-performance relationship reads as
+   * one sex "underperforming" on the dashboard — the shared regression line
+   * reflects mostly whichever sex has more fit-set data, and the other sex's
+   * residual-from-that-line is a real, correctable bias, not a real gap.
+   * Falls through to today's level-only behavior when sex isn't recorded, so
+   * athletes without it are computed exactly as before this field existed.
+   */
   function offsetFor(a: RawAthleteInput): number {
-    const samePeers = fitSet.filter((p) => p.id !== a.id && p.level === a.level);
-    const pool = samePeers.length >= 2 ? samePeers : fitSet.filter((p) => p.id !== a.id);
+    const others = fitSet.filter((p) => p.id !== a.id);
+
+    let pool: RawAthleteInput[] = [];
+    if (a.sex) {
+      const sameSexAndLevel = others.filter((p) => p.sex === a.sex && p.level === a.level);
+      const sameSex = others.filter((p) => p.sex === a.sex);
+      pool = sameSexAndLevel.length >= 2 ? sameSexAndLevel : sameSex.length >= 2 ? sameSex : others;
+    } else {
+      const sameLevel = others.filter((p) => p.level === a.level);
+      pool = sameLevel.length >= 2 ? sameLevel : others;
+    }
+
     if (pool.length === 0) return 0;
     const residuals = pool.map((p) => p.mph - fpPredByFitId.get(p.id)!);
     return mean(residuals);

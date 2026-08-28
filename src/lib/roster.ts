@@ -15,6 +15,7 @@ export const REPORT_REVIEW_WINDOW_DAYS = 60;
 
 export interface RosterAthlete extends ComputedAthlete {
   level: string;
+  birthYear: number | null;
   lastForcePlateTestAt: Date | null;
   daysSinceLastTest: number | null;
   retestOverdueByDays: number | null;
@@ -25,6 +26,7 @@ function toRaw(a: Athlete): RawAthleteInput {
     id: a.id,
     name: a.name,
     level: a.level,
+    sex: a.sex ?? null,
     pp: a.pp,
     ppbm: a.ppbm,
     ci: a.ci,
@@ -49,14 +51,14 @@ function newestForcePlateDate(tests: TestEntry[]): Date | null {
   return fp.reduce((max, t) => (t.date > max ? t.date : max), fp[0].date);
 }
 
-function withRetestInfo<T extends ComputedAthlete>(computed: T, tests: TestEntry[]): RosterAthlete {
-  const lastForcePlateTestAt = newestForcePlateDate(tests);
+function withRetestInfo<T extends ComputedAthlete>(computed: T, athlete: Athlete & { tests: TestEntry[] }): RosterAthlete {
+  const lastForcePlateTestAt = newestForcePlateDate(athlete.tests);
   const daysSinceLastTest = lastForcePlateTestAt ? daysBetweenClubDays(lastForcePlateTestAt, new Date()) : null;
   const retestOverdueByDays =
     daysSinceLastTest !== null && daysSinceLastTest > RETEST_WINDOW_DAYS
       ? daysSinceLastTest - RETEST_WINDOW_DAYS
       : null;
-  return { ...computed, lastForcePlateTestAt, daysSinceLastTest, retestOverdueByDays };
+  return { ...computed, birthYear: athlete.birthYear, lastForcePlateTestAt, daysSinceLastTest, retestOverdueByDays };
 }
 
 async function loadActiveAthletesWithTests() {
@@ -72,7 +74,7 @@ export async function getComputedRoster(): Promise<RosterAthlete[]> {
   const computed = computeRoster(athletes.map(toRaw));
   return computed.map((c) => {
     const athlete = athletes.find((a) => a.id === c.id)!;
-    return withRetestInfo(c, athlete.tests);
+    return withRetestInfo(c, athlete);
   });
 }
 
@@ -103,7 +105,7 @@ export async function getAthleteProfile(id: string) {
     computed = all.find((a) => a.id === id)!;
   }
 
-  return { athlete, computed: withRetestInfo(computed, athlete.tests), tests: athlete.tests };
+  return { athlete, computed: withRetestInfo(computed, athlete), tests: athlete.tests };
 }
 
 export interface Mover {
@@ -169,6 +171,7 @@ export interface LeaderboardEntry {
   athleteId: string;
   athleteName: string;
   level: string;
+  sex: string | null;
   value: number;
 }
 
@@ -179,6 +182,7 @@ export async function getLeaderboards(): Promise<{ performance: LeaderboardEntry
     athleteId: a.id,
     athleteName: a.name,
     level: a.level,
+    sex: a.sex ?? null,
     value: a[key],
   });
 

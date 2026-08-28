@@ -4,6 +4,8 @@ export interface HawkinAthlete {
   active: boolean;
   teams: string[];
   groups: string[];
+  /** Bare birth year string (e.g. "2001") — confirmed live; not in the official docs and not always present. */
+  dob?: string;
 }
 
 export interface HawkinTestType {

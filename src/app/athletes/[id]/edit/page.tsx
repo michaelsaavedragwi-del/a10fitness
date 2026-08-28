@@ -56,6 +56,25 @@ export default async function EditAthletePage({
               ))}
             </datalist>
           </label>
+          <label>
+            Sex
+            <select name="sex" defaultValue={athlete.sex ?? ""}>
+              <option value="">Unspecified</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </label>
+          <label>
+            Birth year
+            <input
+              type="number"
+              step="1"
+              name="birthYear"
+              min={1900}
+              max={new Date().getFullYear()}
+              defaultValue={athlete.birthYear ?? ""}
+            />
+          </label>
         </div>
 
         <div className="form-grid">

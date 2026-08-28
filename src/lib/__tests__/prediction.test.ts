@@ -4,6 +4,7 @@ import { computeRoster, type RawAthleteInput } from "../prediction";
 function athlete(overrides: Partial<RawAthleteInput> & { id: string; name: string }): RawAthleteInput {
   return {
     level: "D1",
+    sex: null,
     pp: 0,
     ppbm: 0,
     ci: 0,
@@ -295,5 +296,70 @@ describe("computeRoster — outlier exclusion is capped at ~10% of the fit set",
     expect(result.find((a) => a.id === "e2")!.excludedFromFit).toBe(true);
     expect(result.find((a) => a.id === "e3")!.excludedFromFit).toBe(false);
     expect(result.find((a) => a.id === "e4")!.excludedFromFit).toBe(false);
+  });
+});
+
+describe("computeRoster — sex-aware re-centering", () => {
+  // Same level for everyone, so level-only grouping would pool both sexes
+  // together. Males cluster high-pp/high-mph, females low-pp/low-mph, with a
+  // genuine within-group slope difference from the pooled line — exactly the
+  // shape that makes a sex-blind offset misfire. Hand-verified: pooling both
+  // sexes into one offset flags every male "high priority" (gap -4.9 to -5.3)
+  // while females read as fine-to-overperforming (gap +2.9 to +7.3); grouping
+  // by sex first centers everyone near zero (-0.2 to +0.2 for males, -2.8 to
+  // +2.8 for females).
+  const roster: RawAthleteInput[] = [
+    athlete({ id: "m1", name: "M1", level: "D1", sex: "Male", pp: 6000, ppbm: 60, ci: 300, brfd: 4200, mrsi: 0.9, mph: 95 }),
+    athlete({ id: "m2", name: "M2", level: "D1", sex: "Male", pp: 6200, ppbm: 62, ci: 310, brfd: 4340, mrsi: 0.9, mph: 97 }),
+    athlete({ id: "m3", name: "M3", level: "D1", sex: "Male", pp: 6400, ppbm: 64, ci: 320, brfd: 4480, mrsi: 0.9, mph: 99 }),
+    athlete({ id: "f1", name: "F1", level: "D1", sex: "Female", pp: 4000, ppbm: 40, ci: 200, brfd: 2800, mrsi: 0.9, mph: 80 }),
+    athlete({ id: "f2", name: "F2", level: "D1", sex: "Female", pp: 4200, ppbm: 42, ci: 210, brfd: 2940, mrsi: 0.9, mph: 84 }),
+    athlete({ id: "f3", name: "F3", level: "D1", sex: "Female", pp: 4400, ppbm: 44, ci: 220, brfd: 3080, mrsi: 0.9, mph: 88 }),
+  ];
+
+  it("centers every athlete near zero when grouped by sex", () => {
+    const result = computeRoster(roster);
+    const byId = Object.fromEntries(result.map((a) => [a.id, a]));
+    expect(byId.m1.gap).toBe(0.2);
+    expect(byId.m1.category).toBe("on track");
+    expect(byId.m2.gap).toBe(0);
+    expect(byId.m3.gap).toBe(-0.2);
+    expect(byId.f1.gap).toBe(-2.8);
+    expect(byId.f1.category).toBe("moderate");
+    expect(byId.f2.gap).toBe(0);
+    expect(byId.f3.gap).toBe(2.8);
+  });
+
+  it("without sex recorded, falls back to the old sex-blind (level-only) grouping and misfires", () => {
+    const sexBlind = roster.map((a) => ({ ...a, sex: null }));
+    const result = computeRoster(sexBlind);
+    const byId = Object.fromEntries(result.map((a) => [a.id, a]));
+    // Every male wrongly flagged high priority when pooled with the female residuals.
+    expect(byId.m1.gap).toBe(-4.9);
+    expect(byId.m1.category).toBe("high priority");
+    expect(byId.m2.category).toBe("high priority");
+    expect(byId.m3.category).toBe("high priority");
+    // Females wrongly read as fine-to-overperforming instead of needing attention.
+    expect(byId.f1.gap).toBe(2.9);
+    expect(byId.f3.gap).toBe(7.3);
+    expect(byId.f3.category).toBe("overperforming");
+  });
+
+  it("dropping one female's sex label falls that whole side back to the mixed pool, unaffected men", () => {
+    // f3 loses her sex label. Men are untouched (f3 was never in their pool).
+    // But f1/f2 now have only ONE same-sex peer each (each other) — below the
+    // >=2 floor — so THEY fall back to the full mixed pool too, reproducing
+    // the old sex-blind numbers for f1/f2 even though f1 and f2 themselves
+    // still have sex recorded. The floor applies to the peer pool size, not
+    // to whether the athlete being scored has a sex value.
+    const partial = roster.map((a) => (a.id === "f3" ? { ...a, sex: null } : a));
+    const result = computeRoster(partial);
+    const byId = Object.fromEntries(result.map((a) => [a.id, a]));
+    expect(byId.m1.gap).toBe(0.2);
+    expect(byId.m2.gap).toBe(0);
+    expect(byId.m3.gap).toBe(-0.2);
+    expect(byId.f1.gap).toBe(2.9);
+    expect(byId.f2.gap).toBe(5.1);
+    expect(byId.f3.gap).toBe(7.3);
   });
 });

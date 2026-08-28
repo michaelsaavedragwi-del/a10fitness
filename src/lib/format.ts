@@ -60,6 +60,12 @@ export function fmtSignedPercent(current: number | null | undefined, baseline: n
   return pct > 0 ? `+${s}%` : `${s}%`;
 }
 
+/** Age in whole years from a birth year — Hawkin (and this app) never store more precision than that. */
+export function ageFromBirthYear(birthYear: number | null | undefined): number | null {
+  if (!birthYear) return null;
+  return new Date().getFullYear() - birthYear;
+}
+
 export const METRIC_LABELS: Record<string, string> = {
   pp: "Peak Power",
   ppbm: "Peak Power / BM",

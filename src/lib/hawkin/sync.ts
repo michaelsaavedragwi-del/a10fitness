@@ -19,10 +19,18 @@ export interface PreviewUnmatchedTest {
   /** Null if this test's metrics aren't calculable yet — can still be dismissed, not created. */
   metrics: CmjMetrics | null;
   extended: ExtendedMetrics | null;
+  /** From Hawkin's own `dob` (a bare year) — only used to pre-fill a new athlete on Create & Import. */
+  birthYear: number | null;
 }
 
 /** Level assigned to an athlete auto-created from an unmatched Hawkin profile — Hawkin has no concept of level. */
 export const AUTO_CREATED_LEVEL = "Unassigned";
+
+function parseBirthYear(dob: string | undefined): number | null {
+  if (!dob) return null;
+  const n = parseInt(dob, 10);
+  return Number.isFinite(n) && n > 1900 && n <= new Date().getFullYear() ? n : null;
+}
 
 export interface SyncPreview {
   matched: PreviewMatchedTest[];
@@ -68,6 +76,7 @@ export async function buildPreview(sinceDays = 30): Promise<SyncPreview> {
         recordedDate,
         metrics,
         extended: metrics ? extractExtendedMetrics(test) : null,
+        birthYear: parseBirthYear(hawkinAthleteById.get(test.athlete.id)?.dob),
       });
       continue;
     }
@@ -150,7 +159,16 @@ export async function createAthleteAndImport(
 
   const athlete = await prisma.athlete.upsert({
     where: { name: test.profileName },
-    create: { name: test.profileName, level: AUTO_CREATED_LEVEL, pp: 0, ppbm: 0, ci: 0, brfd: 0, mrsi: 0 },
+    create: {
+      name: test.profileName,
+      level: AUTO_CREATED_LEVEL,
+      birthYear: test.birthYear,
+      pp: 0,
+      ppbm: 0,
+      ci: 0,
+      brfd: 0,
+      mrsi: 0,
+    },
     update: {},
   });
 

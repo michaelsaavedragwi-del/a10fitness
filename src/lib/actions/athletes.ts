@@ -17,6 +17,18 @@ function str(formData: FormData, key: string): string {
   return String(formData.get(key) ?? "").trim();
 }
 
+function sexField(formData: FormData): string | null {
+  const raw = str(formData, "sex");
+  return raw === "Male" || raw === "Female" ? raw : null;
+}
+
+function birthYearField(formData: FormData): number | null {
+  const raw = str(formData, "birthYear");
+  if (!raw) return null;
+  const n = parseInt(raw, 10);
+  return Number.isFinite(n) && n > 1900 && n <= new Date().getFullYear() ? n : null;
+}
+
 function isDuplicateNameError(err: unknown): boolean {
   return err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
 }
@@ -53,6 +65,8 @@ export async function createAthlete(formData: FormData) {
   const data = {
     name,
     level,
+    sex: sexField(formData),
+    birthYear: birthYearField(formData),
     pp: num(formData, "pp"),
     ppbm: num(formData, "ppbm"),
     ci: num(formData, "ci"),
@@ -110,6 +124,8 @@ export async function updateAthlete(athleteId: string, formData: FormData) {
       data: {
         name,
         level,
+        sex: sexField(formData),
+        birthYear: birthYearField(formData),
         predOverride: predOverride !== null && Number.isFinite(predOverride) ? predOverride : null,
         isa,
         rom,

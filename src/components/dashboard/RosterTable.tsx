@@ -1,10 +1,11 @@
 import Link from "next/link";
 import type { RosterAthlete } from "@/lib/roster";
-import { categoryLabel, fmt1, fmtSigned1 } from "@/lib/format";
+import { ageFromBirthYear, categoryLabel, fmt1, fmtSigned1 } from "@/lib/format";
 
 export interface RosterFilters {
   status: "active" | "archived";
   level: string;
+  sex: string;
   q: string;
   sort: string;
   dir: "asc" | "desc";
@@ -14,6 +15,8 @@ export interface ArchivedRow {
   id: string;
   name: string;
   level: string;
+  sex: string | null;
+  birthYear: number | null;
   pp: number;
   ppbm: number;
   ci: number;
@@ -35,11 +38,12 @@ function sortLink(filters: RosterFilters, key: string): string {
   const params = new URLSearchParams({
     status: filters.status,
     level: filters.level,
+    sex: filters.sex,
     q: filters.q,
     sort: key,
     dir: nextDir,
   });
-  return `/?${params.toString()}#roster`;
+  return `/roster?${params.toString()}#roster`;
 }
 
 export function RosterTable({
@@ -79,6 +83,14 @@ export function RosterTable({
           </select>
         </label>
         <label>
+          Sex
+          <select name="sex" defaultValue={filters.sex}>
+            <option value="">All</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </label>
+        <label>
           Search
           <input type="text" name="q" placeholder="Athlete name" defaultValue={filters.q} />
         </label>
@@ -95,6 +107,8 @@ export function RosterTable({
                 <Link href={sortLink(filters, "name")}>Name</Link>
               </th>
               <th>Level</th>
+              <th>Sex</th>
+              <th>Age</th>
               <th>
                 <Link href={sortLink(filters, "pp")}>Peak Power</Link>
               </th>
@@ -122,6 +136,8 @@ export function RosterTable({
                       <Link href={`/athletes/${a.id}`}>{a.name}</Link>
                     </td>
                     <td>{a.level}</td>
+                    <td>{a.sex ?? "—"}</td>
+                    <td className="num">{ageFromBirthYear(a.birthYear) ?? "—"}</td>
                     <td className="num">{a.pp > 0 ? fmt1(a.pp) : "—"}</td>
                     <td className="num">{a.ppbm > 0 ? fmt1(a.ppbm) : "—"}</td>
                     <td className="num">{a.ci > 0 ? fmt1(a.ci) : "—"}</td>
@@ -139,6 +155,8 @@ export function RosterTable({
                       <Link href={`/athletes/${a.id}`}>{a.name}</Link>
                     </td>
                     <td>{a.level}</td>
+                    <td>{a.sex ?? "—"}</td>
+                    <td className="num">{ageFromBirthYear(a.birthYear) ?? "—"}</td>
                     <td className="num">{a.pp > 0 ? fmt1(a.pp) : "—"}</td>
                     <td className="num">{a.ppbm > 0 ? fmt1(a.ppbm) : "—"}</td>
                     <td className="num">{a.ci > 0 ? fmt1(a.ci) : "—"}</td>
@@ -154,7 +172,7 @@ export function RosterTable({
                 ))}
             {(showingArchived ? archivedRows : rows).length === 0 && (
               <tr>
-                <td colSpan={10} className="empty-state">
+                <td colSpan={12} className="empty-state">
                   No athletes match these filters.
                 </td>
               </tr>

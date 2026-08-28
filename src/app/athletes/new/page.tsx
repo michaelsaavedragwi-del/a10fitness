@@ -35,6 +35,18 @@ export default async function NewAthletePage({
               ))}
             </datalist>
           </label>
+          <label>
+            Sex
+            <select name="sex" defaultValue="">
+              <option value="">Unspecified</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </label>
+          <label>
+            Birth year
+            <input type="number" step="1" name="birthYear" min={1900} max={new Date().getFullYear()} />
+          </label>
         </div>
 
         <p className="hint">
