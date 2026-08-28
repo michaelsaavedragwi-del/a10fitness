@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { AuthError } from "next-auth";
 import { signIn } from "@/auth";
@@ -28,6 +29,7 @@ export default async function LoginPage({
   return (
     <div className="auth-screen">
       <form className="auth-card" action={login}>
+        <Image src="/logo.png" alt="A10 Fitness and Performance" width={1170} height={594} className="auth-logo" priority />
         <h1>Sign in</h1>
         <p className="auth-sub">Strength staff access only.</p>
         {error && <div className="auth-error">Invalid email or password.</div>}

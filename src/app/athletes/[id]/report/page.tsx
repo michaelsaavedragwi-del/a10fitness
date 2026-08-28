@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth-helpers";
 import { getAthleteProfile } from "@/lib/roster";
@@ -41,6 +42,7 @@ export default async function AthleteReportPage({ params }: { params: Promise<{ 
       </div>
 
       <div className="card">
+        <Image src="/logo.png" alt="A10 Fitness and Performance" width={1170} height={594} style={{ width: 160, height: "auto", marginBottom: 12 }} />
         <h1 style={{ marginBottom: 2 }}>{athlete.name}</h1>
         <p className="hint">
           {athlete.level} · Report generated {formatDate(new Date())}

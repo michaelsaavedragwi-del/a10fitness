@@ -103,9 +103,12 @@ p { margin: 0 0 0.75em; color: var(--text-sec); }
 
 .sidebar-brand {
   padding: 0 20px 20px;
-  font-weight: 700;
-  color: var(--text-pri);
-  letter-spacing: 0.02em;
+}
+
+.sidebar-brand img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .sidebar-nav {
@@ -167,6 +170,8 @@ p { margin: 0 0 0.75em; color: var(--text-sec); }
   }
   .sidebar-brand {
     padding: 0;
+    width: 120px;
+    flex-shrink: 0;
   }
   .sidebar-nav {
     flex-direction: row;
@@ -483,6 +488,7 @@ input:focus, select:focus, textarea:focus {
   width: 100%;
   max-width: 360px;
 }
+.auth-logo { width: 100%; height: auto; display: block; margin-bottom: 20px; }
 .auth-card h1 { margin-bottom: 4px; }
 .auth-sub { font-size: 0.82rem; margin-bottom: 20px; }
 .auth-error {

@@ -1,4 +1,4 @@
-# Velocity Lab
+# A10 Fitness and Performance
 
 A force-plate + velocity monitoring dashboard for strength staff: compares each
 athlete's measured performance against what their force-plate output predicts,

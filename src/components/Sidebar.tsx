@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { auth } from "@/auth";
 import { SidebarNav } from "./SidebarNav";
 import { SignOutButton } from "./SignOutButton";
@@ -9,7 +10,9 @@ export async function Sidebar() {
 
   return (
     <div className="sidebar no-print">
-      <span className="sidebar-brand">Velocity Lab</span>
+      <div className="sidebar-brand">
+        <Image src="/logo.png" alt="A10 Fitness and Performance" width={1170} height={594} priority />
+      </div>
       <SidebarNav isOwner={isOwner} />
       <div className="sidebar-user">
         <span>

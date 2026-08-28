@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Velocity Lab",
+  title: "A10 Fitness and Performance",
   description: "Force-plate and velocity monitoring dashboard",
 };
 
